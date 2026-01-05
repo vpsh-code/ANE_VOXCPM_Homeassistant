@@ -34,7 +34,7 @@ By leveraging the **Apple Neural Engine (ANE)**, this bridge allows for lightnin
     ```bash
     cd ANE_VOXCPM_Homeassistant
     uv sync 
-    python3 run_vox.py
+    uv run run_vox.py
     ```
     This launcher will automatically start both the **VoxCPM server** (port 8000) and the **Wyoming bridge** (port 10330).
 

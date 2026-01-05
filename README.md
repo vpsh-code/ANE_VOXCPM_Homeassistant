@@ -14,7 +14,7 @@ By leveraging the **Apple Neural Engine (ANE)**, this bridge allows for lightnin
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/vpsh-code/voxcpmane-wyoming.git](https://github.com/vpsh-code/voxcpmane-wyoming.git)
+    git clone https://github.com/vpsh-code/ANE_VOXCPM_Homeassistant.git
     cd voxcpmane-wyoming
     ```
 

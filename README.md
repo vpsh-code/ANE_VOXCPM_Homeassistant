@@ -43,6 +43,16 @@ By leveraging the **Apple Neural Engine (ANE)**, this bridge allows for lightnin
     * Click **Add Integration** and search for **Wyoming**.
     * Enter your Mac's **IP Address** and port **10330**.
 
+3. **Mac IP Address: To find the IP you should use in Home Assistant, run this in your Mac terminal:**
+    ```bash
+    ipconfig getifaddr en0
+    ```
+4. **Background Running: If you want to keep this running without keeping a terminal window open, you can run it using nohup**
+    ```bash
+    nohup uv run run_vox.py > vox.log 2>&1 &
+    ```
+
+
 ## Features
 
 * **High Performance:** Uses the dedicated Apple Neural Engine for inference.

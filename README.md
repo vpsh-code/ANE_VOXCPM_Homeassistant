@@ -34,6 +34,7 @@ Clone the repository and install dependencies:
 git clone https://github.com/vpsh-code/ANE_VOXCPM_Homeassistant.git
 cd ANE_VOXCPM_Homeassistant
 uv sync
+source .venv/bin/activate
 ```
 
 ---

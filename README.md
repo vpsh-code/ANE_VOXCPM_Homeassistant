@@ -21,7 +21,7 @@ By leveraging the **Apple Neural Engine (ANE)**, the bridge enables **fully loca
 - Apple Silicon Mac (M1 or newer)
 
 ### Software
-- Python **3.11+**
+- Python **Python 3.9-3.12+**
 - [uv](https://docs.astral.sh/uv/) package manager (recommended)
 
 ---

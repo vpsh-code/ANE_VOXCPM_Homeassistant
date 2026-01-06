@@ -199,6 +199,7 @@ ANE_VOXCPM_Homeassistant/
 
 ---
 
-## License
+## Acknowledgements
 
-Refer to the upstream VoxCPMANE project for licensing details.
+Refer to the upstream [VoxCPMANE](https://github.com/0seba/VoxCPMANE) project for licensing details.
+[VoxCPM](https://github.com/OpenBMB/VoxCPM) is the core TTS model used.

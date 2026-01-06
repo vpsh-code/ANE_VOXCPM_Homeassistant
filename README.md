@@ -144,6 +144,8 @@ ipconfig getifaddr en1
 - Open Finder → Go → Go to Folder... ~/.cache/ane_tts/
 - Place the voice file in .wav or .mp3 format eg: im_rajesh.wav
 - Place transription file in .txt format eg: im_rajesh.txt
+- Open Terminal and navigate to the root folder of this project and open vox_bridge.py file i.e nano vox_bridge.py
+- Add the name of the voice in AVAILABLE_VOICES list eg: 'im_rajesh' and save the file.
 - Restart the VoxCPMANE Wyoming Bridge service in the root folder i.e uv run run_vox.py
 - Refresh the Wyoming integration in Home Assistant i.e Settings →  Devices & Services → Wyoming Protocol → Reload
 - Settings → Voice Assistants → Select your pipeline → Select voxcpmane in Text-to-speech  → Select the cloneed voice from Voice* → click on Update

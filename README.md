@@ -139,6 +139,17 @@ ipconfig getifaddr en1
 - Host: `<Mac IP address>`
 - Port: `10330`
 
+### 3. Clone your voice (optional)
+
+- Open Finder → Go → Go to Folder... ~/.cache/ane_tts/
+- Place the voice file in .wav or .mp3 format eg: im_rajesh.wav
+- Place transription file in .txt format eg: im_rajesh.txt
+- Restart the VoxCPMANE Wyoming Bridge service in the root folder i.e uv run run_vox.py
+- Refresh the Wyoming integration in Home Assistant i.e Settings →  Devices & Services → Wyoming Protocol → Reload
+- Settings → Voice Assistants → Select your pipeline → Select voxcpmane in Text-to-speech  → Select the cloneed voice from Voice* → click on Update
+
+**Note : Do not clone a voice of someone without their permission.**
+
 ---
 
 ## Features
@@ -150,6 +161,7 @@ ipconfig getifaddr en1
   - `af_heart`
   - `am_adam`
   - `bf_lily`
+- **Clone your voice and make it available in voice assistant!**
 
 ---
 

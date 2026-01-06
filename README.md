@@ -50,7 +50,7 @@ uv run run_vox.py
 
 This starts:
 - VoxCPMANE server on port **8000**
-- Wyoming bridge on port **10330**
+- Wyoming bridge on port **10333**
 
 ---
 

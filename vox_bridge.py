@@ -29,7 +29,7 @@ AVAILABLE_VOICES = [
     "af_nicole", "af_nos", "af_river", "af_sarah", "af_sky", "am_adam",
     "am_echo", "am_eric", "am_fenrir", "am_liam", "am_michael", "am_onyx",
     "am_puck", "am_santa", "bf_alice", "bf_emma", "bf_isabella", "bf_lily",
-    "bm_daniel", "bm_fable", "bm_george", "bm_lewis","im_vipin"
+    "bm_daniel", "bm_fable", "bm_george", "bm_lewis"
 ]
 
 ATTR = Attribution(name="0seba", url="https://github.com/0seba/VoxCPMANE")
@@ -90,7 +90,7 @@ class VoxWyomingHandler(AsyncEventHandler):
 
     def _log_event(self, event: Event):
         self._seq += 1
-        _LOGGER.info("[conn=%s seq=%d] WYOMING EVENT TYPE: %s", self._conn_id, self._seq, event.type)
+        _LOGGER.debug("[conn=%s seq=%d] WYOMING EVENT TYPE: %s", self._conn_id, self._seq, event.type)
 
     def _make_voice(self, vid: str) -> TtsVoice:
         return TtsVoice(
@@ -104,7 +104,7 @@ class VoxWyomingHandler(AsyncEventHandler):
 
     async def _ensure_audio_start(self):
         if not self._audio_started:
-            _LOGGER.info("[conn=%s] -> AudioStart(rate=%s)", self._conn_id, TARGET_RATE)
+            _LOGGER.debug("[conn=%s] -> AudioStart(rate=%s)", self._conn_id, TARGET_RATE)
             await self.write_event(AudioStart(rate=TARGET_RATE, width=2, channels=1).event())
             self._audio_started = True
 
@@ -156,7 +156,7 @@ class VoxWyomingHandler(AsyncEventHandler):
                 await self.write_event(AudioChunk(audio=chunk, rate=TARGET_RATE, width=2, channels=1).event())
                 await asyncio.sleep(0)
 
-        _LOGGER.info(
+        _LOGGER.debug(
             "[conn=%s mode=%s] Vox done chunks=%d bytes=%d",
             self._conn_id, mode,
             (self._legacy_audio_chunks if mode == "legacy" else self._stream_audio_chunks),
@@ -175,7 +175,7 @@ class VoxWyomingHandler(AsyncEventHandler):
         self._text_buf = []
         self._stream_flushes += 1
 
-        _LOGGER.info("[conn=%s stream] FLUSH #%d force=%s len=%d", self._conn_id, self._stream_flushes, force, len(text))
+        _LOGGER.debug("[conn=%s stream] FLUSH #%d force=%s len=%d", self._conn_id, self._stream_flushes, force, len(text))
         await self._ensure_audio_start()
         await self._stream_vox_pcm(session=session, text=text, voice=self._voice_name, mode="stream")
 
@@ -221,7 +221,7 @@ class VoxWyomingHandler(AsyncEventHandler):
         if SynthesizeChunk.is_type(event.type):
             ch = SynthesizeChunk.from_event(event)
             self._text_buf.append(ch.text)
-            _LOGGER.info("[conn=%s stream] got chunk len=%d text=%r", self._conn_id, len(ch.text), _short(ch.text, 80))
+            _LOGGER.debug("[conn=%s stream] got chunk len=%d text=%r", self._conn_id, len(ch.text), _short(ch.text, 80))
 
             async with aiohttp.ClientSession() as session:
                 await self._flush_text(session=session, force=False)
@@ -237,7 +237,7 @@ class VoxWyomingHandler(AsyncEventHandler):
 
             await self.write_event(SynthesizeStopped().event())
 
-            _LOGGER.info(
+            _LOGGER.debug(
                 "[conn=%s] STREAM DONE flushes=%d chunks=%d bytes=%d",
                 self._conn_id, self._stream_flushes, self._stream_audio_chunks, self._stream_audio_bytes,
             )
@@ -269,7 +269,7 @@ class VoxWyomingHandler(AsyncEventHandler):
                 await self._stream_vox_pcm(session=session, text=synth.text, voice=voice, mode="legacy")
 
             await self.write_event(AudioStop().event())
-            _LOGGER.info("[conn=%s] LEGACY DONE chunks=%d bytes=%d", self._conn_id, self._legacy_audio_chunks, self._legacy_audio_bytes)
+            _LOGGER.debug("[conn=%s] LEGACY DONE chunks=%d bytes=%d", self._conn_id, self._legacy_audio_chunks, self._legacy_audio_bytes)
             return True
 
         _LOGGER.info("[conn=%s] unhandled event=%s", self._conn_id, event.type)

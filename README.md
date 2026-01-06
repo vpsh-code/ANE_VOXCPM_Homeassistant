@@ -4,6 +4,7 @@ This project bridges [VoxCPMANE](https://github.com/0seba/VoxCPMANE) (Apple Neur
 
 By leveraging the **Apple Neural Engine (ANE)**, the bridge enables **fully local**, **low‑latency**, and **high‑quality** text‑to‑speech on Apple Silicon Macs (M1, M2, M3, M4).
 
+Tested on Macbook Pro M3 with Tahoe OS 26.2
 ---
 
 ## Overview
@@ -21,8 +22,9 @@ By leveraging the **Apple Neural Engine (ANE)**, the bridge enables **fully loca
 - Apple Silicon Mac (M1 or newer)
 
 ### Software
-- Python **Python 3.9-3.12+**
+- Python **Python 3.11-3.12+**
 - [uv](https://docs.astral.sh/uv/) package manager (recommended)
+
 
 ---
 

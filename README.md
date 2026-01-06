@@ -128,7 +128,9 @@ ipconfig getifaddr en0
 
 Ethernet:
 ```bash
-ipconfig getifaddr en1
+ipconfig getifaddr en0 or
+ipconfig  getifaddr en1 or
+ipconfig getifaddr <your_interface>
 ```
 
 ### 2. Add Wyoming integration

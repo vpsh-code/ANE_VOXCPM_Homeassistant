@@ -1,13 +1,15 @@
 [project]
 name = "voxcpmane-wyoming"
-version = "0.1.0"
+version = "0.2.0"
 description = "Wyoming protocol bridge for VoxCPMANE on Apple Silicon"
-dependencies = [
-    "voxcpmane",
-    "wyoming>=1.5.0",
-    "aiohttp>=3.9.0",
-]
+readme = "README.md"
 requires-python = ">=3.11"
+dependencies = [
+  "voxcpmane",
+  "wyoming>=1.5.0",
+  "aiohttp>=3.9.0",
+  "uvicorn>=0.30.0",
+]
 
 [tool.setuptools]
 py-modules = ["run_vox", "vox_bridge"]

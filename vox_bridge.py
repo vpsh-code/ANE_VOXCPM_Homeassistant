@@ -22,7 +22,7 @@ from wyoming.info import Info, TtsProgram, TtsVoice, Describe, Attribution
 # DEFAULTS / CONSTANTS
 # -----------------------------
 TARGET_RATE = 16000
-VERSION = "0.0.5"
+VERSION = "0.2.0"
 
 AVAILABLE_VOICES = [
     "af_alloy", "af_aoede", "af_bell", "af_heart", "af_jessica", "af_kore",

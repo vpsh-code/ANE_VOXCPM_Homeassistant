@@ -183,6 +183,7 @@ ipconfig getifaddr <your_interface>
 ```
 ANE_VOXCPM_Homeassistant/
 ├── run_vox.py
+├── vox_bridge.py
 ├── pyproject.toml
 ├── uv.lock
 ├── README.md

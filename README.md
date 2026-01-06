@@ -163,7 +163,7 @@ ipconfig getifaddr <your_interface>
 - **ANE Acceleration** – Dedicated Apple Neural Engine inference
 - **Low Latency** – Streaming audio output
 - **Fully Local** – No external APIs or cloud services
-- **Voice Library** – 29 local voices including:
+- **Voice Library** – 28 local voices including:
   - `af_heart`
   - `am_adam`
   - `bf_lily`

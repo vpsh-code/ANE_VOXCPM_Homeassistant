@@ -2,6 +2,7 @@ import asyncio
 import aiohttp
 import logging
 import os
+import time
 from contextlib import suppress
 from typing import List, Optional
 
@@ -128,6 +129,9 @@ class VoxWyomingHandler(AsyncEventHandler):
             self._conn_id, mode, voice, _short(text),
         )
 
+        start_time = time.perf_counter()
+        first_chunk_received = False
+
         async with session.post(self._vox_url, json=payload, timeout=aiohttp.ClientTimeout(total=120)) as resp:
             if resp.status != 200:
                 body = await resp.text()
@@ -136,6 +140,11 @@ class VoxWyomingHandler(AsyncEventHandler):
             async for chunk in resp.content.iter_chunked(1024):
                 if not chunk:
                     continue
+
+                if not first_chunk_received:
+                    ttft = time.perf_counter() - start_time
+                    _LOGGER.info("[conn=%s mode=%s] TTFT: %.4fs", self._conn_id, mode, ttft)
+                    first_chunk_received = True
 
                 if mode == "legacy":
                     self._legacy_audio_chunks += 1

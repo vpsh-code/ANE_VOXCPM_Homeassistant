@@ -1,32 +1,26 @@
 # VoxCPMANE Wyoming Bridge
 
-This project bridges [VoxCPMANE](https://github.com/0seba/VoxCPMANE) (Apple Neural Engine TTS) with [Home Assistant](https://www.home-assistant.io/) using the **Wyoming protocol**.
+This project bridges VoxCPMANE (Apple Neural Engine TTS) with Home Assistant using the Wyoming protocol.
 
-By leveraging the **Apple Neural Engine (ANE)**, the bridge enables **fully local**, **low‑latency**, and **high‑quality** text‑to‑speech on Apple Silicon Macs (M1, M2, M3, M4).
+By leveraging the Apple Neural Engine (ANE), the bridge enables fully local, low-latency, and high-quality text-to-speech on Apple Silicon Macs (M1, M2, M3, M4).
 
-Tested on Macbook Pro M3 with Tahoe OS 26.2
----
+Tested on Macbook Pro M3 with macOS Sequoia/Tahoe.
 
 ## Overview
 
-- Runs VoxCPMANE locally on macOS
-- Exposes TTS via Wyoming for Home Assistant
-- Optimized for Apple Silicon (ANE-backed inference)
-- No cloud dependencies
-
----
+- **ANE-Powered**: Optimized for Apple Silicon hardware acceleration.
+- **Interactive Setup**: Automatically detects and offers to generate missing standard Kokoro voices on the first launch.
+- **Wyoming Ready**: Seamless integration with Home Assistant's Voice Assistant (Assist).
+- **Zero Cloud**: 100% local inference for privacy and speed.
 
 ## Prerequisites
 
 ### Hardware
-- Apple Silicon Mac (M1 or newer)
+- Apple Silicon Mac (M1, M2, M3, M4)
 
 ### Software
-- Python **Python 3.11-3.12+**
-- [uv](https://docs.astral.sh/uv/) package manager (recommended)
-
-
----
+- Python 3.11+
+- uv package manager (strongly recommended)
 
 ## Installation
 
@@ -39,23 +33,18 @@ uv sync
 source .venv/bin/activate
 ```
 
----
-
 ## Usage
 
 ### Option 1: Manual Start (Foreground)
 
-Recommended for testing and validation.
+Best for the first run. The script will check for standard voices in `~/.cache/ane_tts/voices` and prompt you to generate them if they are missing.
 
 ```bash
 uv run run_vox.py
 ```
 
-This starts:
-- VoxCPMANE server on port **8000**
-- Wyoming bridge on port **10333**
-
----
+- ANE Server: Internal on `127.0.0.1:8080`
+- Wyoming Bridge: External on `0.0.0.0:10333`
 
 ### Option 2: Background (Current Session)
 
@@ -63,15 +52,13 @@ This starts:
 nohup uv run run_vox.py > vox.log 2>&1 &
 ```
 
----
+### Option 3: Persistent macOS Service
 
-### Option 3: Persistent macOS Service (Recommended)
+To ensure the bridge starts automatically when you log in:
 
-Runs automatically on login and restarts if it crashes.
+#### 1. Create the LaunchAgent
 
-#### 1. Generate LaunchAgent plist
-
-Run from the project root:
+Run this command from the project root:
 
 ```bash
 cat <<EOF > com.voxcpmane.bridge.plist
@@ -81,26 +68,20 @@ cat <<EOF > com.voxcpmane.bridge.plist
 <dict>
     <key>Label</key>
     <string>com.voxcpmane.bridge</string>
-
     <key>ProgramArguments</key>
     <array>
         <string>$(which uv)</string>
         <string>run</string>
         <string>run_vox.py</string>
     </array>
-
     <key>WorkingDirectory</key>
     <string>$(pwd)</string>
-
     <key>RunAtLoad</key>
     <true/>
-
     <key>KeepAlive</key>
     <true/>
-
     <key>StandardOutPath</key>
     <string>$(pwd)/vox_stdout.log</string>
-
     <key>StandardErrorPath</key>
     <string>$(pwd)/vox_stderr.log</string>
 </dict>
@@ -108,97 +89,62 @@ cat <<EOF > com.voxcpmane.bridge.plist
 EOF
 ```
 
-#### 2. Register and start the service
+#### 2. Load the Service
 
 ```bash
 cp com.voxcpmane.bridge.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.voxcpmane.bridge.plist
 ```
 
----
-
 ## Home Assistant Integration
 
-### 1. Find Mac IP address
+### 1. Identify Mac IP
 
-Wi‑Fi:
 ```bash
 ipconfig getifaddr en0
 ```
 
-Ethernet:
-```bash
-ipconfig getifaddr en0 or
-ipconfig  getifaddr en1 or
-ipconfig getifaddr <your_interface>
+### 2. Configure Wyoming
+
+In Home Assistant: **Settings → Devices & Services → Add Integration**.
+
+- Search for **Wyoming**
+- Host: Your Mac's IP address
+- Port: `10333`
+
+### 3. Adding Custom Cloned Voices
+
+The code looks for voices in:
+
+```
+~/.cache/ane_tts/voices/<voice_name>/
 ```
 
-### 2. Add Wyoming integration
+Steps:
+1. Place `<voice_name>.wav` and `<voice_name>.txt` inside a folder named after the voice.
+2. Open `vox_bridge.py` and add your voice name to the `AVAILABLE_VOICES` list.
+3. Restart the bridge.
+4. Reload the Wyoming integration in Home Assistant and select the new voice.
 
-- Home Assistant → **Settings → Devices & Services**
-- **Add Integration**
-- Search for **Wyoming**
-
-**Configuration:**
-- Host: `<Mac IP address>`
-- Port: `10330`
-
-### 3. Clone your voice (optional)
-
-- Open Finder → Go → Go to Folder... ~/.cache/ane_tts/
-- Place the voice file in .wav or .mp3 format eg: im_rajesh.wav
-- Place transription file in .txt format eg: im_rajesh.txt
-- Open Terminal and navigate to the root folder of this project and open vox_bridge.py file i.e nano vox_bridge.py
-- Add the name of the voice in AVAILABLE_VOICES list eg: 'im_rajesh' and save the file.
-- Restart the VoxCPMANE Wyoming Bridge service in the root folder i.e uv run run_vox.py
-- Refresh the Wyoming integration in Home Assistant i.e Settings →  Devices & Services → Wyoming Protocol → Reload
-- Settings → Voice Assistants → Select your pipeline → Select voxcpmane in Text-to-speech  → Select the cloneed voice from Voice* → click on Update
-
-**Note : Do not clone a voice of someone without their permission.**
-
----
+**Note**: Do not clone a voice of someone without their explicit permission.
 
 ## Features
 
-- **ANE Acceleration** – Dedicated Apple Neural Engine inference
-- **Low Latency** – Streaming audio output
-- **Fully Local** – No external APIs or cloud services
-- **Voice Library** – 28 local voices including:
-  - `af_heart`
-  - `am_adam`
-  - `bf_lily`
-- **Clone your voice and make it available in voice assistant!**
+- **Automated Voice Generation**: Uses Kokoro-82M to bootstrap your local voice library.
+- **Streaming Support**: Audio begins playing as it is generated, minimizing perceived latency.
+- **Enhanced Logging**: Logs both to the console and `vox_server.log` for troubleshooting.
 
----
-
-## Network Requirements
-
-- Mac and Home Assistant must be on the **same local network**
-- No firewall blocking port **10330**
-
----
-
-## Repository Structure (Expected)
+## Repository Structure
 
 ```
 ANE_VOXCPM_Homeassistant/
-├── run_vox.py
-├── vox_bridge.py
-├── pyproject.toml
-├── uv.lock
-├── README.md
+├── run_vox.py        # Main entry, manages ANE server & Wyoming bridge
+├── vox_bridge.py     # Wyoming protocol & event handling
+├── pyproject.toml    # Project metadata & dependencies
+├── uv.lock           # Dependency lockfile
+└── README.md         # Documentation
 ```
-
----
-
-## Notes
-
-- Designed for macOS only
-- Optimized for Apple Silicon
-- Intended for Home Assistant Wyoming TTS usage
-
----
 
 ## Acknowledgements
 
-[VoxCPMANE](https://github.com/0seba/VoxCPMANE) is the [VOXCPM TTS](https://github.com/OpenBMB/VoxCPM) model with Apple Neural Engine (ANE) backend server.
+Special thanks to **0seba** for the ANE-optimized server and the **VoxCPM / Kokoro** teams.

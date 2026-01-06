@@ -1,95 +1,132 @@
+# run_vox.py
 #!/usr/bin/env python3
+from pathlib import Path
 import asyncio
 import logging
 import os
+import time
+import warnings
 from contextlib import suppress
 
 import uvicorn
 
 LOG = logging.getLogger("run_vox")
 
-
-def _env_int(name: str, default: int) -> int:
-    v = os.getenv(name)
-    if not v:
-        return default
-    return int(v)
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 
-def _env_str(name: str, default: str) -> str:
-    v = os.getenv(name)
-    return v if v else default
+def setup_voices_interactive(voices_root: Path) -> None:
+    """
+    Checks for:
+      ~/.cache/ane_tts/voices/<voice>/<voice>.wav
+      ~/.cache/ane_tts/voices/<voice>/<voice>.txt
+    Generates only missing ones.
+    """
+    voice_map = {
+        "a": [
+            "af_bella", "af_heart", "af_jessica", "af_kore", "af_nicole", "af_nova",
+            "af_river", "af_sarah", "af_sky",
+            "am_adam", "am_echo", "am_eric", "am_fenrir", "am_liam", "am_michael",
+            "am_onyx", "am_puck", "am_santa",
+        ],
+        "b": [
+            "bf_alice", "bf_emma", "bf_isabella", "bf_lily",
+            "bm_daniel", "bm_fable", "bm_george", "bm_lewis",
+        ],
+    }
+
+    prompt_text = "The quick brown fox jumps over the lazy dog."
+
+    missing = []
+    voice_to_lang = {}
+    for lang, voices in voice_map.items():
+        for v in voices:
+            voice_to_lang[v] = lang
+            v_dir = voices_root / v
+            wav = v_dir / f"{v}.wav"
+            txt = v_dir / f"{v}.txt"
+            if not wav.exists() or not txt.exists():
+                missing.append(v)
+
+    if not missing:
+        LOG.info("All standard Kokoro voices are present (wav+txt).")
+        return
+
+    print("\n" + "=" * 50)
+    print(f"KOKORO VOICE CHECK: {len(missing)} voices missing.")
+    print(f"Target: {voices_root}")
+    print("=" * 50)
+    choice = input(f"Would you like to generate the missing {len(missing)} voices now? (y/N): ").lower().strip()
+    if choice != "y":
+        return
+
+    import soundfile as sf
+    from kokoro import KPipeline
+    from tqdm import tqdm
+
+    voices_root.mkdir(parents=True, exist_ok=True)
+    pipes = {}
+
+    with tqdm(total=len(missing), desc="Generating Missing Voices", unit="voice") as pbar:
+        for v in missing:
+            lang = voice_to_lang[v]
+            if lang not in pipes:
+                pipes[lang] = KPipeline(repo_id="hexgrad/Kokoro-82M", lang_code=lang)
+
+            pipe = pipes[lang]
+            v_dir = voices_root / v
+            v_dir.mkdir(parents=True, exist_ok=True)
+
+            wav_path = v_dir / f"{v}.wav"
+            txt_path = v_dir / f"{v}.txt"
+
+            gen = pipe(prompt_text, voice=v)
+            for _, _, audio in gen:
+                sf.write(str(wav_path), audio, 24000)
+                break
+
+            with open(txt_path, "w", encoding="utf-8") as f:
+                f.write(prompt_text)
+
+            pbar.update(1)
+            time.sleep(0.05)
+
+    print("\n✅ Generation complete! Proceeding to start server...")
 
 
 async def _serve_ane(app, host: str, port: int) -> None:
-    cfg = uvicorn.Config(
-        app,
-        host=host,
-        port=port,
-        log_level="info",
-        access_log=True,
-        loop="asyncio",
-    )
-    server = uvicorn.Server(cfg)
-    await server.serve()
+    cfg = uvicorn.Config(app, host=host, port=port, log_level="info", access_log=False)
+    await uvicorn.Server(cfg).serve()
 
 
 async def main() -> int:
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-        handlers=[
-            logging.FileHandler("vox_server.log"),
-            logging.StreamHandler()
-        ]
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 
-    ane_host = _env_str("ANE_HOST", "127.0.0.1")
-    ane_port = _env_int("ANE_PORT", 8080)
+    voices_root = Path.home() / ".cache" / "ane_tts" / "voices"
+    setup_voices_interactive(voices_root)
 
-    wyoming_host = _env_str("WYOMING_HOST", "0.0.0.0")
-    wyoming_port = _env_int("WYOMING_PORT", 10333)
-    wyoming_name = _env_str("WYOMING_NAME", "VoxCPM")
-    wyoming_lang = _env_str("WYOMING_LANGUAGE", "en")
-
-    LOG.info("Starting ANE server on %s:%s ...", ane_host, ane_port)
-    from voxcpmane.server import app as ane_app  # type: ignore
-
-    ane_task = asyncio.create_task(_serve_ane(ane_app, ane_host, ane_port))
-
-    # Wait until ANE HTTP is reachable (best-effort, does not block forever)
+    from voxcpmane.server import app as ane_app
     from vox_bridge import wait_for_http_ok, WyomingTTSBridge
 
-    await wait_for_http_ok(f"http://{ane_host}:{ane_port}", timeout_s=30.0)
+    LOG.info("Starting ANE server...")
+    asyncio.create_task(_serve_ane(ane_app, "127.0.0.1", 8080))
+    await wait_for_http_ok("http://127.0.0.1:8080")
 
-    LOG.info("Starting Wyoming bridge on %s:%s ...", wyoming_host, wyoming_port)
+    host = os.getenv("WYOMING_HOST", "0.0.0.0")
+    port = int(os.getenv("WYOMING_PORT", "10333"))
+
+    LOG.info("Starting Wyoming bridge on %s:%s ...", host, port)
     bridge = WyomingTTSBridge(
-        ane_base_url=f"http://{ane_host}:{ane_port}",
-        host=wyoming_host,
-        port=wyoming_port,
-        name=wyoming_name,
-        language=wyoming_lang,
+        ane_base_url="http://127.0.0.1:8080",
+        host=host,
+        port=port,
     )
-
-    bridge_task = asyncio.create_task(bridge.serve())
-
-    done, pending = await asyncio.wait(
-        {ane_task, bridge_task},
-        return_when=asyncio.FIRST_EXCEPTION,
-    )
-
-    # If one task failed, stop the other cleanly.
-    for t in done:
-        with suppress(Exception):
-            t.result()
-
-    for t in pending:
-        t.cancel()
-        with suppress(Exception):
-            await t
-
+    await bridge.serve()
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(asyncio.run(main()))
+    with suppress(KeyboardInterrupt):
+        raise SystemExit(asyncio.run(main()))
+

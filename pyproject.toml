@@ -1,6 +1,6 @@
 [project]
 name = "voxcpmane-wyoming"
-version = "0.2.0"
+version = "0.2.1"
 description = "Wyoming protocol bridge for VoxCPMANE on Apple Silicon"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -9,6 +9,10 @@ dependencies = [
   "wyoming>=1.5.0",
   "aiohttp>=3.9.0",
   "uvicorn>=0.30.0",
+  "kokoro>=0.1.0",
+  "soundfile>=0.12.1",
+  "misaka>=2.1.1",
+  "pip"
 ]
 
 [tool.setuptools]

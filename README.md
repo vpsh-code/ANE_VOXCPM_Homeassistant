@@ -201,5 +201,4 @@ ANE_VOXCPM_Homeassistant/
 
 ## Acknowledgements
 
-Refer to the upstream [VoxCPMANE](https://github.com/0seba/VoxCPMANE) project for licensing details.
-[VoxCPM](https://github.com/OpenBMB/VoxCPM) is the core TTS model used.
+[VoxCPMANE](https://github.com/0seba/VoxCPMANE) is the [VOXCPM TTS](https://github.com/OpenBMB/VoxCPM) model with Apple Neural Engine (ANE) backend server.
